@@ -1,23 +1,28 @@
+// Load environment variables from .env file
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Import dependencies
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+
+// Import route modules
 import messageRouter from './routes/messageRouter.js';
 import reactionRouter from './routes/reactionRouter.js';
 
+// Create main Express application (central hub / entry point)
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors());            // Enable Cross-Origin Resource Sharing (CORS)
+app.use(express.json());    // Parse incoming JSON requests
 
 // Routers
-app.use('/api/messages', messageRouter);
-app.use('/api/reactions', reactionRouter);
+app.use('/api/messages', messageRouter);   // Route requests to messageRouter
+app.use('/api/reactions', reactionRouter); // Route requests to reactionRouter
 
-// Optional root route
+// Optional root route (health check / welcome message)
 app.get('/', (req, res) => {
     res.send('✅ API is running! Try /api/messages or /api/reactions');
 });
