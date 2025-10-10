@@ -16,7 +16,7 @@ const storage = new CloudinaryStorage({
     cloudinary,
     params: {
         folder: 'messages', // optional folder in Cloudinary
-        allowed_formats: ['jpg', 'png', 'mp4', 'mp3'], // allowed file types
+        allowed_formats: ['jpg', 'png', 'webp', 'mp4', 'mp3'], // allowed file types
     },
 });
 

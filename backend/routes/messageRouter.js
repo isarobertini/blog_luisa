@@ -11,19 +11,16 @@ const router = express.Router();
 // Async function allows awaiting asynchronous operations (like saving to the database) without blocking other code
 router.post('/', parser.single('file'), async (req, res) => {
     try {
-        const { author, text } = req.body; // extract author and text from request body
-        const file = req.file;             // extract uploaded file from request (if any)
+        const { author, text } = req.body; //extract data from the body
+        const file = req.file; // uploaded file handled by Multer
 
-        // If a file was uploaded, create an attachment object:
-        // - type: general file type (image, video, audio) extracted from MIME type for easier handling in the frontend
-        // - url: the file URL from Cloudinary
-        // If no file was uploaded, store null
+        // create attachment object if a file was uploaded
+        // type = 'image' | 'video' | 'audio', url = Cloudinary file path
         const attachment = file
             ? { type: file.mimetype.split('/')[0], url: file.path }
             : null;
 
-        // Save message in MongoDB
-        //If no attachement save null
+        //save to mongoDB
         const message = await Message.create({
             author,
             text,
@@ -33,7 +30,13 @@ router.post('/', parser.single('file'), async (req, res) => {
         res.status(201).json(message);
     } catch (error) {
         console.error(error);
-        res.status(400).json({ error: 'Invalid request' });
+
+        // if Multer/Cloudinary rejects the file due to invalid format, return custom error
+        if (error.message.includes('invalid image type') || error.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({ error: errorMessages.invalidFileFormat });
+        }
+
+        res.status(400).json({ error: errorMessages.invalidRequest });
     }
 });
 
