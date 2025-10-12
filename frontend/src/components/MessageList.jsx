@@ -1,18 +1,33 @@
 import { useEffect, useState } from "react";
-import { fetchMessages } from "../api/messages";
+import { fetchMessages, createMessage } from "../api/messages";
 import MessageCard from "./MessageCard";
+import MessageForm from "./MessageForm";
 
 export default function MessageList() {
     const [messages, setMessages] = useState([]);
 
+    // Fetch existing messages
     useEffect(() => {
-        fetchMessages().then((res) => setMessages(res.data));
+        const loadMessages = async () => {
+            const res = await fetchMessages();
+            const sorted = res.data.sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            setMessages(sorted);
+        };
+        loadMessages();
     }, []);
 
-    const addMessage = (msg) => setMessages((prev) => [msg, ...prev]);
+    // Called when MessageForm submits
+    const handleCreateMessage = async (formData) => {
+        const res = await createMessage(formData);
+        const newMessage = res.data;
+        setMessages((prev) => [newMessage, ...prev]); // instantly add to list
+    };
 
     return (
-        <div className="">
+        <div>
+            <MessageForm onSubmitMessage={handleCreateMessage} />
             <h2>Messages</h2>
             {messages.map((msg) => (
                 <MessageCard key={msg._id} message={msg} />

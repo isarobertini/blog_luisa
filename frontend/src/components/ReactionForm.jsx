@@ -21,7 +21,7 @@ export default function ReactionForm({ onReply }) {
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 required
-                className="border-2 border-indigo-500"
+                className="p-2 border-2 border-black bg-white"
             />
             <Input
                 placeholder="Write a message..."

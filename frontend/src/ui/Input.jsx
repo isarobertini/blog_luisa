@@ -7,7 +7,7 @@ export const Input = ({ value, onChange, placeholder, type = "text", required = 
             value={value}
             onChange={onChange}
             required={required}
-            className={`border-2 border-indigo-500 p-2 rounded ${className}`}
+            className={`m-1 border-2 border-black bg-white p-2 rounded ${className}`}
         />
     );
 };

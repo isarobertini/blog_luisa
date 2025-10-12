@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { createMessage } from "../api/messages";
 import { Button } from "../ui/Button";
 
-export default function MessageForm({ onMessageCreated }) {
+export default function MessageForm({ onSubmitMessage }) {
     const [author, setAuthor] = useState("");
     const [text, setText] = useState("");
     const [file, setFile] = useState(null);
@@ -14,32 +13,40 @@ export default function MessageForm({ onMessageCreated }) {
         formData.append("text", text);
         if (file) formData.append("file", file);
 
-        const res = await createMessage(formData);
-        onMessageCreated(res.data);
+        await onSubmitMessage(formData); // parent (MessageList) handles API + update
+
         setAuthor("");
         setText("");
         setFile(null);
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-center">
             <input
                 type="text"
                 placeholder="Your name"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 required
-                className="border-2 border-indigo-500"
+                className="block w-full p-1 border-2 border-black bg-white rounded"
             />
             <textarea
                 placeholder="Write a message..."
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 required
-                className="border-2 border-indigo-500"
+                className="block w-full p-1 border-2 border-black bg-white rounded"
+                rows={3}
             />
-            <input className="border-2 border-indigo-500" type="file" onChange={(e) => setFile(e.target.files[0])} />
-            <Button type="submit">Post</Button>
+            <input
+                type="file"
+                accept=".jpg,.png,.webp,.mp4,.mp3"
+                onChange={(e) => setFile(e.target.files[0])}
+                className="block w-full p-1 border-2 border-black bg-white rounded"
+            />
+
+            <Button type="submit" className="block">Post</Button>
         </form>
+
     );
 }

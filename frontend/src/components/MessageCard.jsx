@@ -22,7 +22,7 @@ export default function MessageCard({ message, onMessageDeleted }) {
     };
 
     return (
-        <div style={{ border: "1px solid #ccc", margin: "10px", padding: "10px" }}>
+        <div className="bg-stone-300" style={{ border: "1px solid #ccc", margin: "10px", padding: "10px" }}>
             <p><strong>{message.author}</strong></p>
             <p>{message.text}</p>
             {message.attachments.map((att) => (
@@ -30,8 +30,9 @@ export default function MessageCard({ message, onMessageDeleted }) {
                     att.type === "video" ? <video key={att.url} src={att.url} controls width={200} /> :
                         att.type === "audio" ? <audio key={att.url} src={att.url} controls /> : null
             ))}
-            <p>Likes: {likes}</p>
-            <button onClick={handleLike}>Like</button>
+
+
+            <button className="" onClick={handleLike}><img className="h-6" src="https://img.icons8.com/?size=100&id=dKjAZULRJlO7&format=png&color=000000" alt="" /> <p>{likes} Likes</p></button>
 
             <ReactionForm onReply={handleReply} />
             <ReactionList reactions={reactions} />
