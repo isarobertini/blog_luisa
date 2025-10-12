@@ -11,16 +11,13 @@ const router = express.Router();
 // Async function allows awaiting asynchronous operations (like saving to the database) without blocking other code
 router.post('/', parser.single('file'), async (req, res) => {
     try {
-        const { author, text } = req.body; //extract data from the body
-        const file = req.file; // uploaded file handled by Multer
+        const { author, text } = req.body;
+        const file = req.file;
 
-        // create attachment object if a file was uploaded
-        // type = 'image' | 'video' | 'audio', url = Cloudinary file path
         const attachment = file
             ? { type: file.mimetype.split('/')[0], url: file.path }
             : null;
 
-        //save to mongoDB
         const message = await Message.create({
             author,
             text,
@@ -29,16 +26,11 @@ router.post('/', parser.single('file'), async (req, res) => {
 
         res.status(201).json(message);
     } catch (error) {
-        console.error(error);
-
-        // if Multer/Cloudinary rejects the file due to invalid format, return custom error
-        if (error.message.includes('invalid image type') || error.code === 'LIMIT_UNEXPECTED_FILE') {
-            return res.status(400).json({ error: errorMessages.invalidFileFormat });
-        }
-
-        res.status(400).json({ error: errorMessages.invalidRequest });
+        console.error('File upload error:', error);  // 🔹 log full error
+        res.status(500).json({ error: error.message }); // return full error to debug
     }
 });
+
 
 //define route 
 // Call this asynchronous route handler when the server receives a GET request at '/'
