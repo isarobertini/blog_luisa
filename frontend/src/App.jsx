@@ -5,7 +5,7 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
 import Navbar from "./components/Navbar"; // ✅ import
-import "./app.css";
+import "./App.css"
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
