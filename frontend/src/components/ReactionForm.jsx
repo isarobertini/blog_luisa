@@ -15,18 +15,17 @@ export default function ReactionForm({ onReply }) {
 
     return (
         <form onSubmit={handleSubmit}>
-            <input
-                type="text"
+            <Input
                 placeholder="Your name"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 required
-                className="p-2 border-2 border-black bg-white"
             />
             <Input
-                placeholder="Write a message..."
-                value={text}                   // bind to text state
+                placeholder="Write a comment..."
+                value={text}
                 onChange={(e) => setText(e.target.value)}
+                required
             />
             <Button type="submit">Post</Button>
         </form>

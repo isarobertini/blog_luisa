@@ -1,18 +1,35 @@
-import "./App.css";
+import { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
 import MessageList from "./components/MessageList";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Profile from "./components/Profile";
+import Navbar from "./components/Navbar"; // ✅ import
+import "./app.css";
 
 export default function App() {
+  const [token, setToken] = useState(localStorage.getItem("token"));
+
+  useEffect(() => {
+    if (token) localStorage.setItem("token", token);
+    else localStorage.removeItem("token");
+  }, [token]);
+
+  const handleLogout = () => setToken(null);
+
   return (
-    <div className="font-serif bg-[url(https://img.pikbest.com/origin/09/25/44/89upIkbEsT4yK.jpg!w700wp)] p-6 lg:p-20">
+    <div className="p-6 font-serif bg-[url(https://img.pikbest.com/origin/09/25/44/89upIkbEsT4yK.jpg!w700wp)]">
+      <Navbar token={token} onLogout={handleLogout} />
 
-      <div className="flex">
 
-        <h1 className="italic text-red-600 text-5xl mb-5">💬 Bitstream</h1>
-        <img className="h-6" src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaW1nNzV4MXF3aGtvMHVpYTQ0OHg1NjZvbGh1dWczMTY0aWI0bnV2biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mWnDeIKilkwDcrM2VT/giphy.gif" alt="" />
-
-      </div>
-
-      <MessageList />
+      <main className="">
+        <Routes>
+          <Route path="/" element={<MessageList token={token} />} />
+          <Route path="/login" element={<Login onLogin={setToken} />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile token={token} />} />
+        </Routes>
+      </main>
     </div>
   );
 }
