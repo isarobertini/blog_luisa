@@ -1,17 +1,16 @@
 import express from 'express';
 import Message from '../models/messageModel.js';
 import Reaction from '../models/reactionModel.js';
-import errorMessages from '../utils/errorMessages.js';
 import { parser } from '../config/cloudinary.js';
+import { authenticateUser } from '../middleware/authenticateUser.js';
+import errorMessages from '../utils/errorMessages.js';
 
 const router = express.Router();
 
-// POST /api/messages — create a new message
-// Uses parser middleware to handle a single uploaded file and make it available as req.file
-// Async function allows awaiting asynchronous operations (like saving to the database) without blocking other code
-router.post('/', parser.single('file'), async (req, res) => {
+// CREATE a new message (authenticated)
+router.post('/', authenticateUser, parser.single('file'), async (req, res) => {
     try {
-        const { author, text } = req.body;
+        const { text } = req.body;
         const file = req.file;
 
         const attachment = file
@@ -19,76 +18,111 @@ router.post('/', parser.single('file'), async (req, res) => {
             : null;
 
         const message = await Message.create({
-            author,
+            author: req.user.username,  // use JWT username
             text,
             attachments: attachment ? [attachment] : [],
         });
 
         res.status(201).json(message);
     } catch (error) {
-        console.error('File upload error:', error);  // 🔹 log full error
-        res.status(500).json({ error: error.message }); // return full error to debug
+        console.error('File upload error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+// GET /api/protected/profile — authenticated user info + their messages
+router.get('/profile', authenticateUser, async (req, res) => {
+    try {
+        // Find messages authored by this user
+        const messages = await Message.find({ author: req.user.username });
+
+        res.status(200).json({
+            success: true,
+            response: {
+                username: req.user.username,
+                email: req.user.email,
+                id: req.user._id,
+                messages, // all posts by this user
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, response: 'Server error' });
     }
 });
 
-
-//define route 
-// Call this asynchronous route handler when the server receives a GET request at '/'
+// GET all messages (public)
 router.get('/', async (req, res) => {
     try {
-        const messages = await Message.find(); //Call the .find() method on the Message model to fetch all messages from the database
-        res.json(messages); //send the fetched messages back to client as json
+        const messages = await Message.find();
+        res.json(messages);
     } catch (error) {
         res.status(500).json({ error: errorMessages.serverError });
     }
 });
-//define route 
-// Call this asynchronous route handler when the server receives a PUT request at '/:messageId'
-router.put('/:messageId', async (req, res) => {
+
+// UPDATE a message (authenticated + only author)
+router.put('/:messageId', authenticateUser, async (req, res) => {
     try {
-        const { messageId } = req.params;  // Extract the messageId parameter from the request URL
-        const { text } = req.body;// Extract the 'text' property from the request body
+        const { messageId } = req.params;
+        const { text } = req.body;
 
-        // Find the message by ID and update its text and updatedAt timestamp
-        // { new: true } ensures the function returns the updated document
-        const updatedMessage = await Message.findByIdAndUpdate(
-            messageId,
-            { text, updatedAt: Date.now() },
-            { new: true }
-        );
-        // If no message was found with the given ID, return 404
-        if (!updatedMessage)
-            return res.status(404).json({ error: errorMessages.messageNotFound });
+        const message = await Message.findById(messageId);
+        if (!message) return res.status(404).json({ error: errorMessages.messageNotFound });
 
-        // Send the updated message back to the client
-        res.json(updatedMessage);
+        if (message.author !== req.user.username) {
+            return res.status(403).json({ error: "You can only edit your own messages" });
+        }
+
+        message.text = text;
+        message.updatedAt = Date.now();
+        await message.save();
+
+        res.json(message);
     } catch (error) {
-        // If an error occurs (invalid ID, bad request), return 400
         res.status(400).json({ error: errorMessages.invalidRequest });
     }
 });
 
-//define route 
-// Call this asynchronous route handler when the server receives a DELETE request at '/:messageId'
-router.delete('/:messageId', async (req, res) => {
+// DELETE a message (authenticated + only author)
+router.delete('/:messageId', authenticateUser, async (req, res) => {
     try {
-        const { messageId } = req.params; // Extract the messageId parameter from the request URL
+        const { messageId } = req.params;
 
-        // Find the message by ID and delete it
-        const deletedMessage = await Message.findByIdAndDelete(messageId);
+        const message = await Message.findById(messageId);
+        if (!message) return res.status(404).json({ error: errorMessages.messageNotFound });
 
-        // If no message was found with the given ID, return 404
-        if (!deletedMessage)
-            return res.status(404).json({ error: errorMessages.messageNotFound });
+        if (message.author !== req.user.username) {
+            return res.status(403).json({ error: "You can only delete your own messages" });
+        }
 
-        // Delete all reactions linked to this message
+        await message.remove();
         await Reaction.deleteMany({ message: messageId });
 
-        // Confirm deletion to the client
         res.json({ message: errorMessages.deleteSuccess });
     } catch (error) {
         res.status(500).json({ error: errorMessages.serverError });
     }
 });
+// POST /api/messages/:messageId/repost
+router.post('/:messageId/repost', authenticateUser, async (req, res) => {
+    try {
+        const { messageId } = req.params;
+
+        // Find the original message
+        const original = await Message.findById(messageId);
+        if (!original) return res.status(404).json({ error: 'Original message not found' });
+
+        // Create a new message with same content + current user as author
+        const repost = await Message.create({
+            author: req.user.username,
+            text: original.text,
+            attachments: original.attachments,
+        });
+
+        res.status(201).json(repost);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 
 export default router;
