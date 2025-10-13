@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { BASE_URL } from "../api/config";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
 
 export default function Register({ onRegister }) {
     const [username, setUsername] = useState("");
@@ -23,11 +25,13 @@ export default function Register({ onRegister }) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-4 border-2 rounded">
-            <input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <button type="submit">Register</button>
-        </form>
+        <div className="flex items-center justify-center min-h-screen">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-6 border-2 rounded bg-white shadow-md w-full max-w-sm">
+                <Input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Button type="submit">Register</Button>
+            </form>
+        </div>
     );
 }

@@ -36,10 +36,10 @@ export default function Profile({ token }) {
     return (
         <div className="p-4">
 
-            <h2 className="text-2xl font-bold mb-2">{profile.username}'s Profile</h2>
-            <p className="mb-4">Email: {profile.email}</p>
+            <h2 className="text-red-500 text-2xl font-bold mb-2">{profile.username}'s Profile</h2>
+            <p className="text-red-500 mb-4">Email: {profile.email}</p>
 
-            <h3 className="text-xl font-semibold mb-2">Your posts:</h3>
+            <h3 className="text-red-500 text-xl font-semibold mb-2">Your posts:</h3>
             {profile.messages.length === 0 && <p>No messages yet.</p>}
 
             {profile.messages.map((msg) => (

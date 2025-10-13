@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../api/config";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
 
 export default function Login({ onLogin }) {
     const [username, setUsername] = useState("");
@@ -24,11 +26,11 @@ export default function Login({ onLogin }) {
     };
 
     return (
-        <div className="bg-white">
-            <form onSubmit={handleSubmit}>
-                <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-                <button type="submit">Login</button>
+        <div className="flex items-center justify-center min-h-screen">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-6 border-2 rounded bg-white shadow-md w-full max-w-sm">
+                <Input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Button type="submit">Login</Button>
             </form>
         </div>
     );

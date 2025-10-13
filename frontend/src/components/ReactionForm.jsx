@@ -16,12 +16,6 @@ export default function ReactionForm({ onReply }) {
     return (
         <form onSubmit={handleSubmit}>
             <Input
-                placeholder="Your name"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                required
-            />
-            <Input
                 placeholder="Write a comment..."
                 value={text}
                 onChange={(e) => setText(e.target.value)}
