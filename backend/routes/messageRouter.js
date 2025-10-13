@@ -88,20 +88,24 @@ router.delete('/:messageId', authenticateUser, async (req, res) => {
         const { messageId } = req.params;
 
         const message = await Message.findById(messageId);
-        if (!message) return res.status(404).json({ error: errorMessages.messageNotFound });
+        if (!message)
+            return res.status(404).json({ error: "Message not found" });
 
+        // ✅ Ensure only the author can delete
         if (message.author !== req.user.username) {
             return res.status(403).json({ error: "You can only delete your own messages" });
         }
 
-        await message.remove();
-        await Reaction.deleteMany({ message: messageId });
+        await message.deleteOne(); // modern replacement for .remove()
+        await Reaction.deleteMany({ message: messageId }); // clean up reactions
 
-        res.json({ message: errorMessages.deleteSuccess });
+        res.status(200).json({ message: "Message deleted successfully" });
     } catch (error) {
-        res.status(500).json({ error: errorMessages.serverError });
+        console.error("Delete error:", error);
+        res.status(500).json({ error: "Server error while deleting message" });
     }
 });
+
 // POST /api/messages/:messageId/repost
 router.post('/:messageId/repost', authenticateUser, async (req, res) => {
     try {
