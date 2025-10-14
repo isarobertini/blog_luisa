@@ -1,9 +1,8 @@
 [build]
-  base = "frontend"          # your frontend source folder (where package.json is)
-  publish = "frontend/dist"     # folder containing the built static files
-  command = "npm run build"     # build command for Netlify
+  base    = "frontend"
+  publish = "dist"        # just "dist" because base is already frontend/
+  command = "npm run build"
 
-# SPA routing: send all unmatched routes to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
