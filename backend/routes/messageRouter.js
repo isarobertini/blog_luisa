@@ -106,21 +106,28 @@ router.delete('/:messageId', authenticateUser, async (req, res) => {
 });
 
 // REPOST a message (authenticated)
+// REPOST a message (authenticated)
 router.post('/:messageId/repost', authenticateUser, async (req, res) => {
     try {
         const { messageId } = req.params;
+
         const original = await Message.findById(messageId);
         if (!original) return res.status(404).json({ error: 'Original message not found' });
 
+        // Create new repost
         const repost = await Message.create({
             author: req.user.username,
-            authorId: req.user._id,   // store current user's ID
+            authorId: req.user._id,
             text: original.text,
             attachments: original.attachments,
         });
 
+        // Increment repost count on original message
+        await Message.findByIdAndUpdate(messageId, { $inc: { reposts: 1 } });
+
         res.status(201).json(repost);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Server error' });
     }
 });

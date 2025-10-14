@@ -5,6 +5,7 @@ const messageSchema = new mongoose.Schema({
     authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // new: user ID
     text: { type: String, required: true, minlength: 1 },
     likes: { type: Number, default: 0 },
+    reposts: { type: Number, default: 0 },
     attachments: [
         {
             type: {

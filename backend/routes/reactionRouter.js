@@ -9,20 +9,16 @@ const router = express.Router();
 // LIKE a message (authenticated)
 router.post('/:messageId/like', authenticateUser, async (req, res) => {
     try {
-        const { messageId } = req.params;
+        const message = await Message.findByIdAndUpdate(
+            req.params.messageId,
+            { $inc: { likes: 1 } },
+            { new: true }
+        );
+        if (!message) return res.status(404).json({ error: 'Message not found' });
 
-        await Reaction.create({
-            author: req.user.username,
-            authorId: req.user._id,   // store user ID
-            message: messageId,
-            like: true,
-        });
-
-        await Message.findByIdAndUpdate(messageId, { $inc: { likes: 1 } });
-
-        res.status(201).json({ message: errorMessages.likeSuccess });
+        res.status(200).json({ likes: message.likes });
     } catch (error) {
-        res.status(400).json({ error: errorMessages.invalidRequest });
+        res.status(500).json({ error: errorMessages.serverError });
     }
 });
 
@@ -90,27 +86,21 @@ router.put('/:reactionId', authenticateUser, async (req, res) => {
 
 // DELETE a reaction (authenticated + only author)
 router.delete('/:reactionId', authenticateUser, async (req, res) => {
-    try {
-        const { reactionId } = req.params;
+    const reaction = await Reaction.findById(reactionId);
+    if (!reaction) return res.status(404).json({ error: errorMessages.reactionNotFound });
 
-        const reaction = await Reaction.findById(reactionId);
-        if (!reaction) return res.status(404).json({ error: errorMessages.reactionNotFound });
-
-        // ✅ Use authorId for ownership
-        if (reaction.authorId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: "You can only delete your own reactions" });
-        }
-
-        if (reaction.like) {
-            await Message.findByIdAndUpdate(reaction.message, { $inc: { likes: -1 } });
-        }
-
-        await reaction.deleteOne(); // modern method
-
-        res.json({ message: errorMessages.deleteSuccess });
-    } catch (error) {
-        res.status(500).json({ error: errorMessages.serverError });
+    if (reaction.authorId.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ error: "You can only delete your own reactions" });
     }
+
+    if (reaction.like) {
+        await Message.findByIdAndUpdate(reaction.message, { $inc: { likes: -1 } });
+    }
+
+    await reaction.deleteOne();
+
+    res.json({ message: errorMessages.deleteSuccess });
 });
+
 
 export default router;
