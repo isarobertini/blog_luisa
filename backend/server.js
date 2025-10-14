@@ -19,15 +19,32 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
-// Rate limiter (protect login/register from brute force)
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 100,
-    message: { success: false, response: "Too many requests, try again later" },
-});
-app.use(limiter);
+// ----- Rate Limiters -----
 
-// Routers
+// 1️⃣ Protect login/register heavily
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 20, // 20 requests per 15 minutes per IP
+    message: { success: false, response: "Too many login attempts, try again later" },
+});
+
+// 2️⃣ General API limiter (for messages/reactions)
+const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    limit: 1000, // 1000 requests per minute per IP
+    message: { success: false, response: "Slow down!" },
+});
+
+// ----- Apply Limiters -----
+
+// Only apply in production
+if (process.env.NODE_ENV === "production") {
+    app.use("/api/users", authLimiter);
+    app.use("/api/messages", apiLimiter);
+    app.use("/api/reactions", apiLimiter);
+}
+
+// ----- Routers -----
 app.use("/api/users", userRouter);
 app.use("/api/protected", protectedRouter);
 app.use("/api/messages", messageRouter);

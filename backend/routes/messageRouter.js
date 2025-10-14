@@ -18,7 +18,8 @@ router.post('/', authenticateUser, parser.single('file'), async (req, res) => {
             : null;
 
         const message = await Message.create({
-            author: req.user.username,  // use JWT username
+            author: req.user.username,       // display name
+            authorId: req.user._id,          // store user ID for ownership
             text,
             attachments: attachment ? [attachment] : [],
         });
@@ -27,25 +28,6 @@ router.post('/', authenticateUser, parser.single('file'), async (req, res) => {
     } catch (error) {
         console.error('File upload error:', error);
         res.status(500).json({ error: error.message });
-    }
-});
-// GET /api/protected/profile — authenticated user info + their messages
-router.get('/profile', authenticateUser, async (req, res) => {
-    try {
-        // Find messages authored by this user
-        const messages = await Message.find({ author: req.user.username });
-
-        res.status(200).json({
-            success: true,
-            response: {
-                username: req.user.username,
-                email: req.user.email,
-                id: req.user._id,
-                messages, // all posts by this user
-            },
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, response: 'Server error' });
     }
 });
 
@@ -59,6 +41,25 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET messages by logged-in user
+router.get('/profile', authenticateUser, async (req, res) => {
+    try {
+        const messages = await Message.find({ authorId: req.user._id });
+
+        res.status(200).json({
+            success: true,
+            response: {
+                username: req.user.username,
+                email: req.user.email,
+                id: req.user._id,
+                messages,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, response: 'Server error' });
+    }
+});
+
 // UPDATE a message (authenticated + only author)
 router.put('/:messageId', authenticateUser, async (req, res) => {
     try {
@@ -68,7 +69,7 @@ router.put('/:messageId', authenticateUser, async (req, res) => {
         const message = await Message.findById(messageId);
         if (!message) return res.status(404).json({ error: errorMessages.messageNotFound });
 
-        if (message.author !== req.user.username) {
+        if (message.authorId.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: "You can only edit your own messages" });
         }
 
@@ -88,16 +89,14 @@ router.delete('/:messageId', authenticateUser, async (req, res) => {
         const { messageId } = req.params;
 
         const message = await Message.findById(messageId);
-        if (!message)
-            return res.status(404).json({ error: "Message not found" });
+        if (!message) return res.status(404).json({ error: "Message not found" });
 
-        // ✅ Ensure only the author can delete
-        if (message.author !== req.user.username) {
+        if (message.authorId.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: "You can only delete your own messages" });
         }
 
-        await message.deleteOne(); // modern replacement for .remove()
-        await Reaction.deleteMany({ message: messageId }); // clean up reactions
+        await message.deleteOne();
+        await Reaction.deleteMany({ message: messageId });
 
         res.status(200).json({ message: "Message deleted successfully" });
     } catch (error) {
@@ -106,18 +105,16 @@ router.delete('/:messageId', authenticateUser, async (req, res) => {
     }
 });
 
-// POST /api/messages/:messageId/repost
+// REPOST a message (authenticated)
 router.post('/:messageId/repost', authenticateUser, async (req, res) => {
     try {
         const { messageId } = req.params;
-
-        // Find the original message
         const original = await Message.findById(messageId);
         if (!original) return res.status(404).json({ error: 'Original message not found' });
 
-        // Create a new message with same content + current user as author
         const repost = await Message.create({
             author: req.user.username,
+            authorId: req.user._id,   // store current user's ID
             text: original.text,
             attachments: original.attachments,
         });
@@ -127,6 +124,5 @@ router.post('/:messageId/repost', authenticateUser, async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-
 
 export default router;

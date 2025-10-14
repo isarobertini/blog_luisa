@@ -12,7 +12,8 @@ router.post('/:messageId/like', authenticateUser, async (req, res) => {
         const { messageId } = req.params;
 
         await Reaction.create({
-            author: req.user.username,  // JWT username
+            author: req.user.username,
+            authorId: req.user._id,   // store user ID
             message: messageId,
             like: true,
         });
@@ -32,7 +33,8 @@ router.post('/:messageId/reply', authenticateUser, async (req, res) => {
         const { messageId } = req.params;
 
         const reaction = await Reaction.create({
-            author: req.user.username,  // JWT username
+            author: req.user.username,
+            authorId: req.user._id,   // store user ID
             text,
             message: messageId,
             like: false,
@@ -64,7 +66,8 @@ router.put('/:reactionId', authenticateUser, async (req, res) => {
         const reaction = await Reaction.findById(reactionId);
         if (!reaction) return res.status(404).json({ error: errorMessages.reactionNotFound });
 
-        if (reaction.author !== req.user.username) {
+        // ✅ Use authorId for ownership
+        if (reaction.authorId.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: "You can only edit your own reactions" });
         }
 
@@ -93,7 +96,8 @@ router.delete('/:reactionId', authenticateUser, async (req, res) => {
         const reaction = await Reaction.findById(reactionId);
         if (!reaction) return res.status(404).json({ error: errorMessages.reactionNotFound });
 
-        if (reaction.author !== req.user.username) {
+        // ✅ Use authorId for ownership
+        if (reaction.authorId.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: "You can only delete your own reactions" });
         }
 
@@ -101,7 +105,7 @@ router.delete('/:reactionId', authenticateUser, async (req, res) => {
             await Message.findByIdAndUpdate(reaction.message, { $inc: { likes: -1 } });
         }
 
-        await reaction.remove();
+        await reaction.deleteOne(); // modern method
 
         res.json({ message: errorMessages.deleteSuccess });
     } catch (error) {

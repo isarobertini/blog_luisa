@@ -1,8 +1,8 @@
-import mongoose from 'mongoose'; //import statement: ODM (object data modeling) to create models and define schemes, connects us to MongoDB, database
+import mongoose from 'mongoose';
 
-//Bulding a schema defining rules
 const messageSchema = new mongoose.Schema({
-    author: { type: String, required: true, minlength: 1 },
+    author: { type: String, required: true, minlength: 1 },          // display name
+    authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // new: user ID
     text: { type: String, required: true, minlength: 1 },
     likes: { type: Number, default: 0 },
     attachments: [
@@ -21,5 +21,4 @@ const messageSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model('Message', messageSchema); // exporting a Mongoose model called "Message" that uses the messageSchema
-
+export default mongoose.model('Message', messageSchema);
