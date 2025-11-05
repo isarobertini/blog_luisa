@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
-    author: { type: String, required: true, minlength: 1 },          // display name
+    author: { type: String, required: true, minlength: 1, maxlength: 50 },  // display name
     authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // new: user ID
-    text: { type: String, required: true, minlength: 1 },
+    text: { type: String, required: true, minlength: 1, maxlength: 200 },
     likes: { type: Number, default: 0 },
     reposts: { type: Number, default: 0 },
+    repost: {
+        originalMessageId: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
+        originalAuthor: String,
+    },
     attachments: [
         {
             type: {

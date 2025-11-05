@@ -86,7 +86,9 @@ router.put('/:reactionId', authenticateUser, async (req, res) => {
 
 // DELETE a reaction (authenticated + only author)
 router.delete('/:reactionId', authenticateUser, async (req, res) => {
+    const { reactionId } = req.params;
     const reaction = await Reaction.findById(reactionId);
+
     if (!reaction) return res.status(404).json({ error: errorMessages.reactionNotFound });
 
     if (reaction.authorId.toString() !== req.user._id.toString()) {

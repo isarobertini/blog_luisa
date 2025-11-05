@@ -1,6 +1,7 @@
 import express from "express";
 import { authenticateUser } from "../middleware/authenticateUser.js";
 
+//get profile if authensicated
 const router = express.Router();
 
 router.get("/profile", authenticateUser, (req, res) => {

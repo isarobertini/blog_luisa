@@ -1,135 +1,23 @@
 import express from 'express';
-import Message from '../models/messageModel.js';
-import Reaction from '../models/reactionModel.js';
 import { parser } from '../config/cloudinary.js';
 import { authenticateUser } from '../middleware/authenticateUser.js';
-import errorMessages from '../utils/errorMessages.js';
+import {
+    createMessage,
+    getAllMessages,
+    getUserMessages,
+    updateMessage,
+    deleteMessage,
+    repostMessage,
+} from '../controllers/messageController.js';
 
 const router = express.Router();
 
-// CREATE a new message (authenticated)
-router.post('/', authenticateUser, parser.single('file'), async (req, res) => {
-    try {
-        const { text } = req.body;
-        const file = req.file;
-
-        const attachment = file
-            ? { type: file.mimetype.split('/')[0], url: file.path }
-            : null;
-
-        const message = await Message.create({
-            author: req.user.username,       // display name
-            authorId: req.user._id,          // store user ID for ownership
-            text,
-            attachments: attachment ? [attachment] : [],
-        });
-
-        res.status(201).json(message);
-    } catch (error) {
-        console.error('File upload error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// GET all messages (public)
-router.get('/', async (req, res) => {
-    try {
-        const messages = await Message.find();
-        res.json(messages);
-    } catch (error) {
-        res.status(500).json({ error: errorMessages.serverError });
-    }
-});
-
-// GET messages by logged-in user
-router.get('/profile', authenticateUser, async (req, res) => {
-    try {
-        const messages = await Message.find({ authorId: req.user._id });
-
-        res.status(200).json({
-            success: true,
-            response: {
-                username: req.user.username,
-                email: req.user.email,
-                id: req.user._id,
-                messages,
-            },
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, response: 'Server error' });
-    }
-});
-
-// UPDATE a message (authenticated + only author)
-router.put('/:messageId', authenticateUser, async (req, res) => {
-    try {
-        const { messageId } = req.params;
-        const { text } = req.body;
-
-        const message = await Message.findById(messageId);
-        if (!message) return res.status(404).json({ error: errorMessages.messageNotFound });
-
-        if (message.authorId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: "You can only edit your own messages" });
-        }
-
-        message.text = text;
-        message.updatedAt = Date.now();
-        await message.save();
-
-        res.json(message);
-    } catch (error) {
-        res.status(400).json({ error: errorMessages.invalidRequest });
-    }
-});
-
-// DELETE a message (authenticated + only author)
-router.delete('/:messageId', authenticateUser, async (req, res) => {
-    try {
-        const { messageId } = req.params;
-
-        const message = await Message.findById(messageId);
-        if (!message) return res.status(404).json({ error: "Message not found" });
-
-        if (message.authorId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: "You can only delete your own messages" });
-        }
-
-        await message.deleteOne();
-        await Reaction.deleteMany({ message: messageId });
-
-        res.status(200).json({ message: "Message deleted successfully" });
-    } catch (error) {
-        console.error("Delete error:", error);
-        res.status(500).json({ error: "Server error while deleting message" });
-    }
-});
-
-// REPOST a message (authenticated)
-// REPOST a message (authenticated)
-router.post('/:messageId/repost', authenticateUser, async (req, res) => {
-    try {
-        const { messageId } = req.params;
-
-        const original = await Message.findById(messageId);
-        if (!original) return res.status(404).json({ error: 'Original message not found' });
-
-        // Create new repost
-        const repost = await Message.create({
-            author: req.user.username,
-            authorId: req.user._id,
-            text: original.text,
-            attachments: original.attachments,
-        });
-
-        // Increment repost count on original message
-        await Message.findByIdAndUpdate(messageId, { $inc: { reposts: 1 } });
-
-        res.status(201).json(repost);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
+// Routes
+router.post('/', authenticateUser, parser.single('file'), createMessage);
+router.get('/', getAllMessages);
+router.get('/profile', authenticateUser, getUserMessages);
+router.put('/:messageId', authenticateUser, updateMessage);
+router.delete('/:messageId', authenticateUser, deleteMessage);
+router.post('/:messageId/repost', authenticateUser, repostMessage);
 
 export default router;
