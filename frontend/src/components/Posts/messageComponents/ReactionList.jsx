@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "../ui/Button";
-import { BASE_URL } from "../api/config";
+import { Button } from "../../../ui/Button";
+import { BASE_URL } from "../../../api/config";
 
 export default function ReactionList({ reactions = [], setReactions, token, currentUser, onReactionDeleted }) {
     const [editingReactionId, setEditingReactionId] = useState(null);

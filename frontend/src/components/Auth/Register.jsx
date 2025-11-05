@@ -1,8 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
-import { BASE_URL } from "../api/config";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
+import { BASE_URL } from "../../api/config";
+import { Input } from "../../ui/Input";
+import { Button } from "../../ui/Button";
 
 export default function Register({ onRegister }) {
     const [username, setUsername] = useState("");

@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import MessageList from "./components/MessageList";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Profile from "./components/Profile";
+import MessageList from "./components/Posts/MessageList";
+import Login from "./components/Auth/Login";
+import Register from "./components/Auth/Register";
+import Profile from "./components/Auth/Profile";
 
 export default function AppRoutes({ token, onLogin }) {
     return (

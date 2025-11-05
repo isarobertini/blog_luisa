@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "../ui/Button";
+import { Button } from "../../ui/Button";
 
 export default function MessageForm({ onSubmitMessage }) {
     const [text, setText] = useState("");

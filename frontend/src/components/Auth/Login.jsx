@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../api/config";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
+import { BASE_URL } from "../../api/config";
+import { Input } from "../../ui/Input";
+import { Button } from "../../ui/Button";
 
 export default function Login({ onLogin }) {
     const [username, setUsername] = useState("");

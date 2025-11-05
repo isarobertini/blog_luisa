@@ -1,32 +1,16 @@
-import axios from "axios";
-import { BASE_URL } from "./config";
+import api from "./axiosInstance";
 
-export const fetchMessages = () => axios.get(`${BASE_URL}/messages`);
+export const fetchMessages = () => api.get("/messages");
 
-export const createMessage = async (formData) => {
-    const token = localStorage.getItem("token");
-    return axios.post(`${BASE_URL}/messages`, formData, {
+export const createMessage = (formData) =>
+    api.post("/messages", formData, {
         headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "multipart/form-data", // needed for file uploads
         },
     });
-};
 
-export const deleteMessage = (messageId, token) =>
-    axios.delete(`${BASE_URL}/messages/${messageId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
+export const deleteMessage = (messageId) => api.delete(`/messages/${messageId}`);
 
-export const repostMessage = (messageId, token) =>
-    axios.post(`${BASE_URL}/messages/${messageId}/repost`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
+export const repostMessage = (messageId) => api.post(`/messages/${messageId}/repost`);
 
-export const editMessage = (messageId, text, token) => {
-    return axios.put(
-        `${BASE_URL}/messages/${messageId}`,
-        { text },
-        { headers: { Authorization: `Bearer ${token}` } }
-    );
-};
+export const editMessage = (messageId, text) => api.put(`/messages/${messageId}`, { text });

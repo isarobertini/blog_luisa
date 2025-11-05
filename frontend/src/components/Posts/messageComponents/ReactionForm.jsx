@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
+import { Button } from "../../../ui/Button";
+import { Input } from "../../../ui/Input";
 
 export default function ReactionForm({ onReply }) {
     const [author, setAuthor] = useState("");

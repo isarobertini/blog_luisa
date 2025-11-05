@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Button } from "../ui/Button";
+import { Button } from "../../../ui/Button";
 
 export default function RepostInfo({ repost }) {
     const [showFullChain, setShowFullChain] = useState(false);
-
     if (!repost) return null;
 
     const { repostChain = [], originalAuthor } = repost;
@@ -17,14 +16,12 @@ export default function RepostInfo({ repost }) {
                 Reposted from{" "}
                 {truncated.map((name, i) => (
                     <span key={i}>
-                        {name}
-                        {i < truncated.length - 1 ? ", " : ""}
+                        {name}{i < truncated.length - 1 ? ", " : ""}
                     </span>
                 ))}
                 {hasMore && (
                     <>
-                        {" "}
-                        and{" "}
+                        {" "}and{" "}
                         <button
                             className="text-blue-600 hover:underline"
                             onClick={() => setShowFullChain(true)}
@@ -40,9 +37,7 @@ export default function RepostInfo({ repost }) {
                 <div className="bg-white border rounded shadow p-2 mt-1">
                     <p className="font-semibold">Full repost history:</p>
                     <ul className="list-disc list-inside text-sm text-gray-700">
-                        {repostChain.map((name, i) => (
-                            <li key={i}>{name}</li>
-                        ))}
+                        {repostChain.map((name, i) => <li key={i}>{name}</li>)}
                         <li><strong>Original author:</strong> {originalAuthor}</li>
                     </ul>
                     <Button
