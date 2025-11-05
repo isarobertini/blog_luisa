@@ -5,180 +5,179 @@ import { deleteMessage, repostMessage } from "../api/messages";
 import ReactionForm from "./ReactionForm";
 import ReactionList from "./ReactionList";
 import { Button } from "../ui/Button";
+import { BASE_URL } from "../api/config";
 
-export default function MessageCard({ message, onMessageDeleted, onMessageReposted, token, BASE_URL }) {
+export default function MessageCard({ message, onMessageDeleted, onMessageReposted, token }) {
     const [likes, setLikes] = useState(message.likes || 0);
     const [reactions, setReactions] = useState([]);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState(message.text);
     const [repostCount, setRepostCount] = useState(message.reposts || 0);
+    const [currentMessage, setCurrentMessage] = useState(message);
 
     let currentUser = null;
     if (token) {
-        try {
-            currentUser = jwtDecode(token);
-        } catch (err) {
-            console.warn("Invalid token", err);
-        }
+        try { currentUser = jwtDecode(token); }
+        catch (err) { console.warn("Invalid token", err); }
     }
 
-    const isAuthor = currentUser && message.authorId === currentUser.id;
+    const isAuthor = currentUser && currentMessage.authorId === currentUser.id;
 
-    // Load reactions for this message
+    // Load reactions
     useEffect(() => {
         const loadReactions = async () => {
             try {
-                const res = await fetchReactions(message._id);
-                setReactions(res.data);
-            } catch (err) {
-                console.error("Failed to fetch reactions", err);
-            }
+                const res = await fetchReactions(currentMessage._id);
+                setReactions(res.data || []);
+            } catch (err) { console.error("Failed to fetch reactions", err); }
         };
         loadReactions();
-    }, [message._id]);
+    }, [currentMessage._id]);
 
-    // Like handler
+    // Handlers
     const handleLike = async () => {
         if (!token) return alert("You must be logged in to like messages");
         try {
-            await likeMessage(message._id, token);
+            await likeMessage(currentMessage._id, token);
             setLikes(prev => prev + 1);
-        } catch (err) {
-            console.error("Failed to like message:", err);
-        }
+        } catch (err) { console.error(err); }
     };
 
-    // Delete message
     const handleDelete = async () => {
         if (!token) return alert("You must be logged in to delete messages");
         if (!window.confirm("Are you sure you want to delete this message?")) return;
-
         try {
-            await deleteMessage(message._id, token);
-            onMessageDeleted(message._id);
-        } catch (err) {
-            console.error("Failed to delete message:", err);
-            alert("Could not delete the message");
-        }
+            await deleteMessage(currentMessage._id, token);
+            onMessageDeleted(currentMessage._id);
+        } catch (err) { console.error(err); alert("Could not delete the message"); }
     };
 
-    // Repost message
     const handleRepost = async () => {
         if (!token) return alert("You must be logged in to repost");
         if (!window.confirm("Are you sure you want to repost this message?")) return;
-
         try {
-            const res = await repostMessage(message._id, token);
+            const res = await repostMessage(currentMessage._id, token);
             setRepostCount(prev => prev + 1);
-
-            if (onMessageReposted) {
-                const repostMessageObj = {
-                    ...res.data,
-                    repost: { originalAuthor: message.author },
-                    reposts: 0,
-                };
-                onMessageReposted(repostMessageObj);
-            }
+            if (onMessageReposted) onMessageReposted(res.data);
             alert("Reposted!");
-        } catch (err) {
-            console.error("Failed to repost message:", err);
-            alert("Could not repost the message");
-        }
+        } catch (err) { console.error(err); alert("Could not repost the message"); }
     };
 
-    // Reply handler
     const handleReply = async (author, text) => {
         if (!token) return alert("You must be logged in to reply");
         try {
-            const res = await replyToMessage(message._id, author, text, token);
+            const res = await replyToMessage(currentMessage._id, author, text, token);
             setReactions(prev => [...prev, res.data]);
-        } catch (err) {
-            console.error("Failed to post reply:", err);
-            alert("Could not post your reply");
-        }
+        } catch (err) { console.error(err); alert("Could not post your reply"); }
     };
 
-    // Delete a reaction
     const handleReactionDeleted = async (reactionId, isLike) => {
         if (!token) return alert("You must be logged in to delete reactions");
         if (!window.confirm("Are you sure you want to delete this reaction?")) return;
-
         try {
             const res = await fetch(`${BASE_URL}/reactions/${reactionId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
-
             if (!res.ok) throw new Error("Failed to delete reaction");
-
-            // Remove reaction from state
             setReactions(prev => prev.filter(r => r._id !== reactionId));
-
-            // Update likes counter if needed
             if (isLike) setLikes(prev => Math.max(prev - 1, 0));
-
-        } catch (err) {
-            console.error("Failed to delete reaction:", err);
-            alert("Could not delete this reaction");
-        }
+        } catch (err) { console.error(err); alert("Could not delete this reaction"); }
     };
 
+    const handleSaveEdit = async () => {
+        if (!token) return alert("You must be logged in to edit messages");
+        try {
+            const res = await fetch(`${BASE_URL}/messages/${currentMessage._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ text: editText }),
+            });
+            if (!res.ok) throw new Error("Failed to edit message");
+            const updatedMessage = await res.json();
+            setCurrentMessage(updatedMessage);
+            setIsEditing(false);
+        } catch (err) { console.error(err); alert("Could not save edits"); }
+    };
+
+    // Repost chain
+    const lastReposters = currentMessage.repost?.repostChain?.slice(-5) || [];
+    const originalAuthor = currentMessage.repost?.originalAuthor;
 
     return (
-        <div className="bg-stone-300 p-4 mb-4 rounded shadow">
-            <p><strong>{message.author}</strong></p>
+        <div className="bg-gray-300 p-4 mb-4 rounded shadow">
+            <p><strong>{currentMessage.author}</strong></p>
 
-            {message.repost && (
+            {currentMessage.repost && (
                 <p className="text-gray-600 italic text-sm">
-                    Reposted from {message.repost.originalAuthor}
+                    Reposted from{" "}
+                    {lastReposters.map((author, i) => (
+                        <span key={i}>{author}{i < lastReposters.length - 1 ? ", " : ""}</span>
+                    ))}
+                    {originalAuthor && (lastReposters.length > 0 ? ", " : "")}
+                    <strong>{originalAuthor}</strong>
                 </p>
             )}
 
-            <p>{message.text}</p>
-
-            {message.attachments?.map(att =>
-                att.type === "image" ? (
-                    <img key={att.url} src={att.url} alt="" width={200} />
-                ) : att.type === "video" ? (
-                    <video key={att.url} src={att.url} controls width={200} />
-                ) : att.type === "audio" ? (
-                    <audio key={att.url} src={att.url} controls />
-                ) : null
+            {isEditing ? (
+                <div className="flex flex-col gap-2">
+                    <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="border p-1 rounded w-full"
+                        rows={3}
+                    />
+                    <div className="flex gap-2">
+                        <Button onClick={handleSaveEdit}>Save</Button>
+                        <Button onClick={() => { setIsEditing(false); setEditText(currentMessage.text); }}>Cancel</Button>
+                    </div>
+                </div>
+            ) : (
+                <p>
+                    {currentMessage.text}{" "}
+                    {new Date(currentMessage.updatedAt).getTime() !== new Date(currentMessage.createdAt).getTime() && (
+                        <span className="text-gray-500 text-sm">(edited)</span>
+                    )}
+                </p>
             )}
 
-            <div className="py-2 flex gap-4">
-                <p>{likes} likes</p>
-                <p>{repostCount} repost{repostCount !== 1 ? 's' : ''}</p>
-            </div>
+            {currentMessage.attachments?.map(att =>
+                att.type === "image" ? <img key={att.url} src={att.url} alt="" width={200} /> :
+                    att.type === "video" ? <video key={att.url} src={att.url} controls width={200} /> :
+                        att.type === "audio" ? <audio key={att.url} src={att.url} controls /> : null
+            )}
 
             <div className="flex items-center gap-2 mt-2">
-                <Button type="button" onClick={handleLike}>
-                    <img
-                        src="https://img.icons8.com/emoji/48/000000/red-heart.png"
-                        alt="heart"
-                        className="w-5 h-5"
-                    />
+                <Button onClick={handleLike} className="flex items-center gap-1">
+                    <img className="w-5 h-5" src="https://img.icons8.com/emoji/48/000000/red-heart.png" alt="heart" />
+                    <p>{likes} like{likes !== 1 ? "s" : ""}</p>
                 </Button>
 
-                {isAuthor && (
-                    <Button type="button" onClick={handleDelete}>
-                        Delete
+                {token && (
+                    <Button onClick={handleRepost} className="flex items-center gap-1">
+                        <img src="https://img.icons8.com/?size=100&id=h_LA1kaQQWR2&format=png&color=000000" alt="repost" className="w-5 h-5" />
+                        <p>{repostCount} repost{repostCount !== 1 ? "s" : ""}</p>
                     </Button>
                 )}
 
-                {token && (
-                    <Button type="button" onClick={handleRepost}>
-                        <img
-                            src="https://img.icons8.com/?size=100&id=h_LA1kaQQWR2&format=png&color=000000"
-                            alt="repost"
-                            className="w-5 h-5"
-                        />{" "}
-                        Repost
-                    </Button>
+                {isAuthor && !isEditing && (
+                    <>
+                        <Button onClick={() => setIsEditing(true)}>
+                            <img className="w-5 h-5" src="https://img.icons8.com/?size=100&id=MCdDfCTzd5GC&format=png&color=000000" alt="edit" />
+                        </Button>
+                        <Button onClick={handleDelete}>
+                            <img className="w-5 h-5" src="https://img.icons8.com/?size=100&id=1941&format=png&color=000000" alt="delete" />
+                        </Button>
+                    </>
                 )}
+
+                <p className="text-gray-400 text-xs">{new Date(currentMessage.updatedAt).toLocaleString()}</p>
             </div>
 
             <div className="mt-2">
                 <ReactionList
                     reactions={reactions}
+                    setReactions={setReactions}
                     token={token}
                     currentUser={currentUser}
                     onReactionDeleted={handleReactionDeleted}

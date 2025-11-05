@@ -3,7 +3,7 @@ import { fetchMessages, createMessage } from "../api/messages";
 import MessageCard from "./MessageCard";
 import MessageForm from "./MessageForm";
 
-export default function MessageList({ token }) {
+export default function MessageList({ token, BASE_URL }) {
     const [messages, setMessages] = useState([]);
     const [visibleCount, setVisibleCount] = useState(5); // show first 5 initially
     const [loading, setLoading] = useState(false);
@@ -36,9 +36,11 @@ export default function MessageList({ token }) {
         }
     };
 
+
     const handleLoadMore = () => {
         setVisibleCount(prev => prev + 5); // load 5 more messages
     };
+
 
     return (
         <div className="flex justify-center w-full">
@@ -52,6 +54,7 @@ export default function MessageList({ token }) {
                 {messages.slice(0, visibleCount).map(msg => (
                     <MessageCard
                         key={msg._id}
+                        BASE_URL={BASE_URL}
                         message={msg}
                         token={token}
                         onMessageDeleted={(id) => setMessages(prev => prev.filter(m => m._id !== id))}

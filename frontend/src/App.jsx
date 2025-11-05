@@ -14,11 +14,15 @@ export default function App() {
   const handleLogout = () => setToken(null);
 
   return (
-    <div className="min-h-screen w-full bg-[url(https://img.pikbest.com/origin/09/25/44/89upIkbEsT4yK.jpg!w700wp)] bg-cover bg-center p-6 font-serif">
-      <Navbar token={token} onLogout={handleLogout} />
-      <main>
-        <AppRoutes token={token} onLogin={setToken} />
-      </main>
-    </div>
+    <>
+
+      <div className="min-h-screen w-full bg-[url(https://img.pikbest.com/origin/09/25/44/89upIkbEsT4yK.jpg!w700wp)] bg-cover bg-center p-6 font-serif">
+        <Navbar token={token} onLogout={handleLogout} />
+        <main>
+          <AppRoutes token={token} onLogin={setToken} />
+        </main>
+
+      </div>
+    </>
   );
 }

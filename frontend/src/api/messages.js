@@ -23,3 +23,10 @@ export const repostMessage = (messageId, token) =>
         headers: { Authorization: `Bearer ${token}` },
     });
 
+export const editMessage = (messageId, text, token) => {
+    return axios.put(
+        `${BASE_URL}/messages/${messageId}`,
+        { text },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+};
