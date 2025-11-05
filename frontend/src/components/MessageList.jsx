@@ -58,6 +58,7 @@ export default function MessageList({ token, BASE_URL }) {
                         message={msg}
                         token={token}
                         onMessageDeleted={(id) => setMessages(prev => prev.filter(m => m._id !== id))}
+                        onMessageReposted={(newRepost) => setMessages(prev => [newRepost, ...prev])}
                     />
                 ))}
 

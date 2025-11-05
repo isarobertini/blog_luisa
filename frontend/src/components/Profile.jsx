@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { BASE_URL } from "../api/config";
-import MessageCard from "../components/MessageCard";
+import MessageCard from "./MessageCard";
 
 
 export default function Profile({ token }) {
