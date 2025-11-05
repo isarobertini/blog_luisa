@@ -9,6 +9,7 @@ const messageSchema = new mongoose.Schema({
     repost: {
         originalMessageId: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
         originalAuthor: String,
+        repostChain: [String],
     },
     attachments: [
         {
