@@ -14,30 +14,44 @@ import protectedRouter from "./routes/protectedRouter.js";
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// ----- Middleware -----
 app.use(helmet());
 app.use(express.json());
 
+// ----- CORS using FRONTEND_URL env -----
+const allowedOrigins = [
+    process.env.FRONTEND_URL,     // frontend in Render/Netlify
+    "http://localhost:5173",      // local frontend for testing
+];
+
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true, // allow cookies/auth headers if needed
+}));
+
 // ----- Rate Limiters -----
 
-// 1️⃣ Protect login/register heavily
+// Protect login/register heavily
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 20, // 20 requests per 15 minutes per IP
+    max: 20,
     message: { success: false, response: "Too many login attempts, try again later" },
 });
 
-// 2️⃣ General API limiter (for messages/reactions)
+// General API limiter
 const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    limit: 1000, // 1000 requests per minute per IP
+    max: 1000,
     message: { success: false, response: "Slow down!" },
 });
 
-// ----- Apply Limiters -----
-
-// Only apply in production
+// Apply limiters only in production
 if (process.env.NODE_ENV === "production") {
     app.use("/api/users", authLimiter);
     app.use("/api/messages", apiLimiter);
@@ -51,14 +65,14 @@ app.use("/api/messages", messageRouter);
 app.use("/api/reactions", reactionRouter);
 
 // Root route
-app.get("/", (req, res) => res.send("✅ API is running!"));
+app.get("/", (req, res) => res.send(" API is running!"));
 
-// MongoDB connection
+// ----- MongoDB Connection -----
 mongoose
     .connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ Connected to MongoDB"))
-    .catch((err) => console.error("❌ MongoDB connection error:", err));
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 
-// Start server
+// ----- Start Server -----
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
