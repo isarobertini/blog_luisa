@@ -1,16 +1,38 @@
-# React + Vite
+# BitStream Blog
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personal blogging platform built with **React** (frontend) and **Node.js/Express** (backend), allowing users to register, login, create posts, like, repost, and reply to messages.
 
-Currently, two official plugins are available:
+**Live Demo:** [Frontend](https://bitstream-blog-for-loisa.netlify.app/) | [Backend API](https://blog-luisa.onrender.com/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **User Authentication**
+  - Register and login with username/email and password.
+  - JWT-based authentication.
 
-## Expanding the ESLint configuration
+- **Posts**
+  - Create, delete, and repost messages.
+  - View your profile with your posts.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Reactions**
+  - Like and reply to posts.
+  - Delete reactions.
+
+- **Repost Chain**
+  - Track and display the full repost chain for a message.
+
+- **Responsive UI**
+  - Built with React and Tailwind CSS for mobile and desktop.
+
+---
+
+## Usage
+
+1. Register a new account or login.
+2. Create posts in the feed.
+3. Like, reply, and repost messages.
+4. View your profile to see your posts and repost chain.
+
+---
