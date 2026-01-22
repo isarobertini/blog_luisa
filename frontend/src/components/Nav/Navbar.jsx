@@ -43,6 +43,7 @@ export default function Navbar({ token, onLogout }) {
                                     onClick={() => {
                                         onLogout();
                                         navigate("/login");
+                                        alert("Logout successful!")
                                     }}
                                 >
                                     Logout

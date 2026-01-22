@@ -17,7 +17,7 @@ export default function Register({ onRegister }) {
                 email,
                 password,
             });
-            alert("Registered successfully!");
+            alert("Registered successfully! You are now logged in.");
             onRegister(res.data.response.token); // pass token to parent
         } catch (err) {
             alert(err.response?.data?.response || err.message);
@@ -26,7 +26,8 @@ export default function Register({ onRegister }) {
 
     return (
         <div className="flex items-center justify-center min-h-screen">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-6 border-2 rounded bg-white shadow-md w-full max-w-sm">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-6 border-2 rounded bg-gray-300 shadow-md w-full max-w-sm">
+                <h2 className="text-red-600 font-bold">Register</h2>
                 <Input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
                 <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
