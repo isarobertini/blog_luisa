@@ -1,51 +1,55 @@
 import { useState } from "react";
-import { Button } from "../../../ui/Button";
 
+// RepostInfo component shows repost chain info
 export default function RepostInfo({ repost }) {
-    const [showFullChain, setShowFullChain] = useState(false);
-    if (!repost) return null;
+    const [open, setOpen] = useState(false);
 
-    const { repostChain = [], originalAuthor } = repost;
-    const maxVisible = 3;
-    const truncated = repostChain.slice(-maxVisible);
-    const hasMore = repostChain.length > maxVisible;
+    if (!repost?.originalMessageId) return null; // No repost, nothing to show
+
+    const chain = repost.repostChain || []; // Full repost chain
+
+    if (chain.length === 0) return null; // Empty chain, nothing to show
+
+    // Exclude immediate source (last in chain)
+    const restOfChain = chain.slice(0, chain.length - 1);
+
+    // Reverse order so most recent repost appears first
+    const reversedChain = restOfChain.reverse();
+
+    const max = 3;
+    const visible = reversedChain.slice(0, max); // Show up to `max` reposts
 
     return (
-        <div className="text-gray-600 italic text-sm mt-1">
+        <div className="text-sm italic text-gray-600 mt-1">
             <p>
-                Reposted from{" "}
-                {truncated.map((name, i) => (
-                    <span key={i}>
-                        {name}{i < truncated.length - 1 ? ", " : ""}
-                    </span>
-                ))}
-                {hasMore && (
+                {visible.length > 0 ? "Reposted from " + visible.join(", ") : "Reposted"}
+                {restOfChain.length > max && (
                     <>
                         {" "}and{" "}
                         <button
-                            className="text-blue-600 hover:underline"
-                            onClick={() => setShowFullChain(true)}
+                            className="text-blue-600"
+                            onClick={() => setOpen(true)}
                         >
-                            {repostChain.length - maxVisible} more
+                            {restOfChain.length - max} more
                         </button>
                     </>
                 )}
-                {" "}→ Original post by <strong>{originalAuthor}</strong>
             </p>
 
-            {showFullChain && (
-                <div className="bg-white border rounded shadow p-2 mt-1">
-                    <p className="font-semibold">Full repost history:</p>
-                    <ul className="list-disc list-inside text-sm text-gray-700">
-                        {repostChain.map((name, i) => <li key={i}>{name}</li>)}
-                        <li><strong>Original author:</strong> {originalAuthor}</li>
+            {open && (
+                <div className="bg-white border rounded p-2 mt-2">
+                    <p className="font-semibold">Full repost chain</p>
+                    <ul className="list-disc list-inside">
+                        {chain.map((name, i) => (
+                            <li key={i}>{name}</li> // Show each name in chain
+                        ))}
                     </ul>
-                    <Button
-                        onClick={() => setShowFullChain(false)}
+                    <button
                         className="text-blue-600 mt-2"
+                        onClick={() => setOpen(false)}
                     >
                         Close
-                    </Button>
+                    </button>
                 </div>
             )}
         </div>

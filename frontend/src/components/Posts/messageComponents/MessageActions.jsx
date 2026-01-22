@@ -2,16 +2,13 @@ import { Button } from "../../../ui/Button";
 
 export default function MessageActions({
     likes,
-    setLikes,
     repostCount,
-    setRepostCount,
     isAuthor,
     token,
     handleLike,
     handleDelete,
     handleRepost,
-    updatedAt,
-    setIsEditing
+    updatedAt
 }) {
     return (
         <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -43,28 +40,21 @@ export default function MessageActions({
                 </Button>
             )}
 
-            {/* Edit/Delete Buttons */}
+            {/* Delete Button Only */}
             {isAuthor && (
-                <>
-                    <Button className="p-1 sm:p-2" onClick={() => setIsEditing(true)}>
-                        <img
-                            className="w-5 h-5"
-                            src="https://img.icons8.com/?size=100&id=MCdDfCTzd5GC&format=png&color=000000"
-                            alt="edit"
-                        />
-                    </Button>
-                    <Button className="p-1 sm:p-2" onClick={handleDelete}>
-                        <img
-                            className="w-5 h-5"
-                            src="https://img.icons8.com/?size=100&id=1941&format=png&color=000000"
-                            alt="delete"
-                        />
-                    </Button>
-                </>
+                <Button className="p-1 sm:p-2" onClick={handleDelete}>
+                    <img
+                        className="w-5 h-5"
+                        src="https://img.icons8.com/?size=100&id=1941&format=png&color=000000"
+                        alt="delete"
+                    />
+                </Button>
             )}
 
             {/* Timestamp */}
-            <span className="text-gray-400 text-xs ml-auto sm:ml-2">{new Date(updatedAt).toLocaleString()}</span>
+            <span className="text-gray-400 text-xs ml-auto sm:ml-2">
+                {new Date(updatedAt).toLocaleString()}
+            </span>
         </div>
     );
 }

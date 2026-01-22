@@ -1,4 +1,3 @@
-import React from "react";
 import ReactionForm from "./ReactionForm";
 import ReactionList from "./ReactionList";
 

@@ -3,18 +3,21 @@ import axios from "axios";
 import { BASE_URL } from "../../api/config";
 import MessageCard from "../Posts/MessageCard";
 
+// Profile component
 export default function Profile({ token }) {
-    const [profile, setProfile] = useState(null);
+    const [profile, setProfile] = useState(null); // Profile state
 
     useEffect(() => {
         if (!token) return;
 
+        // Load profile data if token exists
         const loadProfile = async () => {
             try {
                 const res = await axios.get(`${BASE_URL}/messages/profile`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
+                // Combine messages and reposts
                 const messages = res.data.response.messages || [];
                 const reposts = (res.data.response.reposts || []).map(r => ({
                     ...r.originalMessage,
@@ -22,6 +25,7 @@ export default function Profile({ token }) {
                     repost: { originalAuthor: r.originalMessage.author },
                 }));
 
+                // Set profile with sorted messages by date
                 setProfile({
                     ...res.data.response,
                     messages: [...messages, ...reposts].sort(
@@ -29,13 +33,14 @@ export default function Profile({ token }) {
                     ),
                 });
             } catch (err) {
-                console.error("Failed to fetch profile:", err);
+                console.error("Failed to fetch profile:", err); // Log fetch errors
             }
         };
 
         loadProfile();
     }, [token]);
 
+    // Remove deleted message from state
     const handleMessageDeleted = (messageId) => {
         setProfile(prev => ({
             ...prev,
@@ -43,6 +48,7 @@ export default function Profile({ token }) {
         }));
     };
 
+    // Update state when a message is reposted
     const handleMessageReposted = (newRepost) => {
         setProfile(prev => ({
             ...prev,
@@ -50,7 +56,7 @@ export default function Profile({ token }) {
         }));
     };
 
-    if (!profile) return <p className="text-center mt-4">Loading profile...</p>;
+    if (!profile) return <p className="text-center mt-4">Loading profile...</p>; // Loading state
 
     return (
         <div className="flex justify-center w-full px-2 sm:px-4 md:px-6 lg:px-8">
@@ -63,7 +69,7 @@ export default function Profile({ token }) {
                 <h3 className="text-red-500 text-xl font-semibold mb-2 text-center">Your posts:</h3>
 
                 {profile.messages.length === 0 ? (
-                    <p className="text-center text-gray-500">No messages yet.</p>
+                    <p className="text-center text-gray-500">No messages yet.</p> // No messages
                 ) : (
                     profile.messages.map(msg => (
                         <MessageCard
